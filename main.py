@@ -11,11 +11,11 @@ from utils.draw_text_with_background import draw_text_with_background
 def main():
     # video_path = r"C:\Users\yakupzengin\Fitness-Trainer\data\squat.mp4"
     # video_path = r"C:\Users\yakupzengin\Fitness-Trainer\data\push_up.mp4"
-    video_path = "/home/alireza/Documents/university/project/pose estimation/gith/data/pushup/pp2.mp4"
+    video_path = "/home/alireza/Documents/university/project/pose estimation/gith/data/squat/wrong1.mp4"
 
     # exercise_type = "hammer_curl"
-    exercise_type = "push_up"
-    # exercise_type = "squat"
+    # exercise_type = "push_up"
+    exercise_type = "squat"
 
 
     cap = cv2.VideoCapture(video_path)

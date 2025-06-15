@@ -28,7 +28,7 @@ class PushUp:
 
     def analyze_form(self, landmarks, frame, angle_left, angle_right):
         """Analyze push-up form and generate feedback"""
-        feedback_msgs = {'left': "", 'right': "", 'general': ""}
+        feedback_msgs = {'left': "", 'right': "", 'general': "Excellent form!"}
         
         try:
             left_shoulder = [int(landmarks[11].x * frame.shape[1]), int(landmarks[11].y * frame.shape[0])]

@@ -14,12 +14,12 @@ class Squat:
         }
         
         # Define ideal ranges for squat form
-        self.ideal_hip_hinge_range = (45, 90)  # Shoulder-hip-knee angle for proper hip hinge
-        self.ideal_squat_depth = 45  # Hip-knee angle for proper depth
-        self.minimum_squat_depth = 120  # Minimum acceptable depth
-
-    def calculate_angle(self, hip, knee, ankle):
-        return calculate_angle(hip, knee, ankle)
+        self.ideal_hip_hinge_range = 55  # Shoulder-hip-knee angle for proper hip hinge
+        # self.ideal_squat_depth = 45  # Hip-knee angle for proper depth
+        # self.minimum_squat_depth = 90  # Minimum acceptable depth
+        
+        self.angle_threshold_up = 165
+        self.angle_threshold_down = 90  
     
     def analyze_form(self, landmarks, frame, hip_knee_angle_left, hip_knee_angle_right):
         """Analyze squat form and generate feedback"""
@@ -35,37 +35,44 @@ class Squat:
             knee_right = [int(landmarks[26].x * frame.shape[1]), int(landmarks[26].y * frame.shape[0])]
             
             # Calculate hip hinge angle (shoulder-hip-knee angle)
-            hip_hinge_angle_left = calculate_angle(shoulder_left, hip_left, knee_left)
-            hip_hinge_angle_right = calculate_angle(shoulder_right, hip_right, knee_right)
-            avg_hip_hinge_angle = (hip_hinge_angle_left + hip_hinge_angle_right) / 2
+            hip_angle_left = calculate_angle(shoulder_left, hip_left, knee_left)
+            hip_angle_right = calculate_angle(shoulder_right, hip_right, knee_right)
+            avg_hip_angle = (hip_angle_left + hip_angle_right) / 2
             
-            # Hip hinge feedback - checking if trainer is bending from hip
-            if self.stage in ["Descent", "Ascent"]:
-                if avg_hip_hinge_angle < self.ideal_hip_hinge_range[0]:
-                    feedback_msgs['hip_hinge'] = "Lean forward more from hips!"
-                elif avg_hip_hinge_angle > self.ideal_hip_hinge_range[1]:
-                    feedback_msgs['hip_hinge'] = "Too much forward lean!"
-                else:
-                    feedback_msgs['hip_hinge'] = "Good hip hinge!"
+            # # Hip hinge feedback - checking if trainer is bending from hip
+            # if self.stage in ["Down", "Up"]:
+            #     if avg_hip_angle < self.ideal_hip_hinge_range[0]:
+            #         feedback_msgs['hip_hinge'] = "Lean forward more from hips!"
+            #     elif avg_hip_angle > self.ideal_hip_hinge_range[1]:
+            #         feedback_msgs['hip_hinge'] = "Too much forward lean!"
+            #     else:
+            #         feedback_msgs['hip_hinge'] = "Good hip hinge!"
+            if avg_hip_angle < self.ideal_hip_hinge_range:
+                feedback_msgs['hip_hinge'] = "Too much forward lean!"
             
             # Depth feedback - checking how low the trainer is going
             avg_depth_angle = (hip_knee_angle_left + hip_knee_angle_right) / 2
+            # print(avg_hip_angle, avg_depth_angle)
             
-            if self.stage == "Descent" or self.stage == "Ascent":
-                if avg_depth_angle > self.minimum_squat_depth:
-                    feedback_msgs['depth'] = "Go lower! Aim for parallel!"
-                elif avg_depth_angle > self.ideal_squat_depth:
-                    feedback_msgs['depth'] = "Almost there! A bit deeper!"
-                else:
-                    feedback_msgs['depth'] = "Great depth!"
+            # if self.stage != "Up" and avg_depth_angle > self.minimum_squat_depth:
+            #     feedback_msgs['depth'] = "Go lower!"
+
+            # if self.stage == "Down" or self.stage == "Up":
+            #     if avg_depth_angle > self.minimum_squat_depth:
+            #         feedback_msgs['depth'] = "Go lower! Aim for parallel!"
+            #     elif avg_depth_angle > self.ideal_squat_depth:
+            #         feedback_msgs['depth'] = "Almost there! A bit deeper!"
+            #     else:
+            #         feedback_msgs['depth'] = "Great depth!"
             
             # General feedback combining both aspects
-            if (self.ideal_hip_hinge_range[0] <= avg_hip_hinge_angle <= self.ideal_hip_hinge_range[1] and
-                avg_depth_angle <= self.ideal_squat_depth and 
-                self.stage in ["Descent", "Ascent"]):
+            # if (self.ideal_hip_hinge_range[0] <= avg_hip_angle <= self.ideal_hip_hinge_range[1] and
+            #     avg_depth_angle <= self.ideal_squat_depth and 
+            #     self.stage in ["Down", "Up"]):
+            if feedback_msgs["hip_hinge"] == "" and feedback_msgs["depth"] == "":
                 feedback_msgs['general'] = "Excellent form!"
-            elif self.stage == "Starting Position":
-                feedback_msgs['general'] = "Ready to squat!"
+            # elif self.stage == "Starting Position":
+            #     feedback_msgs['general'] = "Ready to squat!"
             
             self.feedback_messages = feedback_msgs
             
@@ -85,9 +92,13 @@ class Squat:
         ankle_right = [int(landmarks[28].x * frame.shape[1]), int(landmarks[28].y * frame.shape[0])]
 
         # Calculate angles (hip-knee-ankle for depth tracking)
-        angle_left = self.calculate_angle(hip_left, knee_left, ankle_left)
-        angle_right = self.calculate_angle(hip_right, knee_right, ankle_right)
-        
+        angle_left = calculate_angle(hip_left, knee_left, ankle_left)
+        angle_right = calculate_angle(hip_right, knee_right, ankle_right)
+        hip_angle_left = calculate_angle(shoulder_left, hip_left, knee_left)
+        hip_angle_right = calculate_angle(shoulder_right, hip_right, knee_right)
+
+        avg_depth_angle = (angle_left + angle_right) / 2
+
         # Analyze form before drawing
         self.analyze_form(landmarks, frame, angle_left, angle_right)
 
@@ -110,24 +121,31 @@ class Squat:
 
         # Display angles on screen
         angle_text_position = (knee_left[0] + 10, knee_left[1] - 10)
-        cv2.putText(frame, f'Angle Left: {int(angle_left)}', angle_text_position, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(frame, f'Angle: {int(angle_left)}', angle_text_position, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         angle_text_position_right = (knee_right[0] + 10, knee_right[1] - 10)
-        cv2.putText(frame, f'Angle Right: {int(angle_right)}', angle_text_position_right, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(frame, f'Angle: {int(angle_right)}', angle_text_position_right, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
+        angle_text_position = (hip_left[0] + 10, hip_left[1] - 10)
+        cv2.putText(frame, f'Angle: {int(hip_angle_left)}', angle_text_position, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-        if angle_left <= 42 and self.stage == "Up":
-            self.stage = "Down"
-            self.counter += 1
-        elif angle_left >= 170 and self.stage == "Down":
-            self.stage = "Up"
+        angle_text_position_right = (hip_right[0] + 10, hip_right[1] - 10)
+        cv2.putText(frame, f'Angle: {int(hip_angle_right)}', angle_text_position_right, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+        if self.feedback_messages["general"] == "Excellent form!":
+            if angle_left <= self.angle_threshold_down and self.stage == "Up":
+                self.stage = "Down"
+                self.counter += 1
+            elif angle_left >= self.angle_threshold_up and self.stage == "Down":
+                self.stage = "Up"
+            
         # # Update exercise stage and counter
-        # if angle > 170:
+        # if angle_left > self.angle_threshold_up:
         #     self.stage = "Starting Position"
-        # elif 80 < angle < 170 and self.stage == "Starting Position":
-        #     self.stage = "Descent"
-        # elif angle < 80 and self.stage == "Descent":
-        #     self.stage = "Ascent"
+        # elif self.angle_threshold_down < angle_left < self.angle_threshold_up and self.stage == "Starting Position":
+        #     self.stage = "Down"
+        # elif angle_left < self.angle_threshold_down and self.stage == "Down":
+        #     self.stage = "Up"
         #     self.counter += 1
             
         # Return counter, angle, stage, and feedback messages
