@@ -46,23 +46,6 @@ class PushUp:
             # Back alignment feedback
             if avg_back_angle < self.ideal_back_angle_range[0]:
                 feedback_msgs['general'] = "Keep back straight!"
-
-            # if self.stage == "Down" and min(angle_left, angle_right) > self.angle_threshold_down:
-                # feedback_msgs['general'] = "Go lower!"
-
-            # # Speed analysis
-            # current_time = time.time()
-            # if hasattr(self, 'last_stage') and self.last_stage != self.stage:
-            #     stage_duration = current_time - self.last_stage_change
-            #     if stage_duration < 0.5:  # Too fast
-            #         feedback_msgs['general'] = "Slower movement! 🐌"
-            #         self.form_violations['too_fast'] += 1
-            #     self.last_stage_change = current_time
-            #     self.last_stage = self.stage
-            
-            # Range of motion feedback based on stage
-            # if self.stage == "Descent" and min(angle_left, angle_right) > 100:
-            #     feedback_msgs['general'] = "Go lower!"
             
             if (self.ideal_back_angle_range[0] <= avg_back_angle <= self.ideal_back_angle_range[1] and
                 feedback_msgs['general'] == ""):

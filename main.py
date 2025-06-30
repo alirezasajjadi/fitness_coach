@@ -11,12 +11,12 @@ from utils.draw_text_with_background import draw_text_with_background
 def main():
     # video_path = r"C:\Users\yakupzengin\Fitness-Trainer\data\squat.mp4"
     # video_path = r"C:\Users\yakupzengin\Fitness-Trainer\data\push_up.mp4"
-    video_path = "/home/alireza/Documents/university/project/pose estimation/gith/data/squat/wrong1.mp4"
+    video_path = "/home/alireza/Documents/university/project/pose estimation/gith/data/pushup/pushupcrt1.mp4"
 
     # exercise_type = "hammer_curl"
-    # exercise_type = "push_up"
-    exercise_type = "squat"
-
+    exercise_type = "push_up"
+    # exercise_type = "squat"
+# 20 5
 
     cap = cv2.VideoCapture(video_path)
 
@@ -46,7 +46,7 @@ def main():
     cv2.resizeWindow(window_name, 1280, 720)
 
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    output_file = "push-up.mp4"
+    output_file = "output.mp4"
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -59,8 +59,6 @@ def main():
         # frame = cv2.flip(frame, 1)
 
         results = pose_estimator.estimate_pose(frame, exercise_type)
-
-        # frame = cv2.resize(frame, (1280, 720)) 
 
         if results.pose_landmarks:
             if exercise_type == "squat":
@@ -77,20 +75,12 @@ def main():
                 counter, angle, stage, msg_right, msg_left, msg_general = exercise.track_push_up(results.pose_landmarks.landmark, frame)
                 layout_indicators(frame, exercise_type, (counter, angle, stage, msg_right, msg_left, msg_general))
 
-        # sidebar_width = 500
-        # sidebar = np.ones((frame.shape[0], sidebar_width, 3), dtype=np.uint8) * 30  # darker gray
-
 
         draw_text_with_background(frame, f"Exercise: {exercise_info.get('name', 'N/A')}", (40, 50),
                                   cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255,), (118, 29, 14, 0.79), 1)
 
 
         out.write(frame)
-
-        # # cv2.namedWindow(f"{exercise_type.replace('_', ' ').title()} Tracker", cv2.WINDOW_NORMAL)
-        # # cv2.resizeWindow(f"{exercise_type.replace('_', ' ').title()} Tracker", 1920, 1080)
-        
-        # combined = np.hstack((frame, sidebar))
 
         cv2.imshow(window_name, frame)
 
